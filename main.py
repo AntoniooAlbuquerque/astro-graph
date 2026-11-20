@@ -1,219 +1,60 @@
-import networkx as nx
-from pyvis.network import Network
-
-# 1. INICIALIZAÇÃO DO GRAFO DIRECONADO
-# Instanciamos um DiGraph (Grafo Direcionado) porque as órbitas possuem um sentido 
-G = nx.DiGraph()
-
-# 2. BASE DE DADOS
-astros = {
-    # Estrela Central
-    "Sol": {"tipo": "Estrela", "classificacao": "Ana Amarela"},
-    
-    # Planetas Principais
-    "Mercurio": {"tipo": "Planeta", "classificacao": "Rochoso"},
-    "Venus": {"tipo": "Planeta", "classificacao": "Rochoso"},
-    "Terra": {"tipo": "Planeta", "classificacao": "Rochoso"},
-    "Marte": {"tipo": "Planeta", "classificacao": "Rochoso"},
-    "Jupiter": {"tipo": "Planeta", "classificacao": "Gigante Gasoso"},
-    "Saturno": {"tipo": "Planeta", "classificacao": "Gigante Gasoso"},
-    "Urano": {"tipo": "Planeta", "classificacao": "Gigante Gelado"},
-    "Netuno": {"tipo": "Planeta", "classificacao": "Gigante Gelado"},
-    
-    # Planetas Anões
-    "Plutao": {"tipo": "Planeta Anao", "classificacao": "Plutoide"},
-    "Ceres": {"tipo": "Planeta Anao", "classificacao": "Asteroide Grande"},
-    "Eris": {"tipo": "Planeta Anao", "classificacao": "Plutoide"},
-    "Haumea": {"tipo": "Planeta Anao", "classificacao": "Plutoide"},
-    "Makemake": {"tipo": "Planeta Anao", "classificacao": "Plutoide"},
-
-    # Satélites Naturais (Luas da Terra e de Marte)
-    "Lua": {"tipo": "Satelite", "classificacao": "Rochoso"},
-    "Fobos": {"tipo": "Satelite", "classificacao": "Asteroide Capturado"},
-    "Deimos": {"tipo": "Satelite", "classificacao": "Asteroide Capturado"},
-    
-    # Satélites Naturais (Luas de Júpiter)
-    "Io": {"tipo": "Satelite", "classificacao": "Galileana"},
-    "Europa": {"tipo": "Satelite", "classificacao": "Galileana"},
-    "Ganimedes": {"tipo": "Satelite", "classificacao": "Galileana"},
-    "Calisto": {"tipo": "Satelite", "classificacao": "Galileana"},
-    "Amalteia": {"tipo": "Satelite", "classificacao": "Interna Irregular"},
-    "Himalia": {"tipo": "Satelite", "classificacao": "Externa Irregular"},
-    "Tebe": {"tipo": "Satelite", "classificacao": "Interna Irregular"},
-    "Elara": {"tipo": "Satelite", "classificacao": "Externa Irregular"},
-    "Pasife": {"tipo": "Satelite", "classificacao": "Externa Irregular"},
-    "Carme": {"tipo": "Satelite", "classificacao": "Externa Irregular"},
-    
-    # Satélites Naturais (Luas de Saturno)
-    "Tita": {"tipo": "Satelite", "classificacao": "Atmosfera Densa"},
-    "Encelado": {"tipo": "Satelite", "classificacao": "Criovulcanica"},
-    "Mimas": {"tipo": "Satelite", "classificacao": "Corpo Gelado"},
-    "Reia": {"tipo": "Satelite", "classificacao": "Corpo Gelado"},
-    "Japeto": {"tipo": "Satelite", "classificacao": "Bicolor"},
-    "Dione": {"tipo": "Satelite", "classificacao": "Corpo Gelado"},
-    "Tetis": {"tipo": "Satelite", "classificacao": "Corpo Gelado"},
-    "Hiperion": {"tipo": "Satelite", "classificacao": "Esponjoso"},
-    
-    # Satélites Naturais (Luas de Urano)
-    "Titania": {"tipo": "Satelite", "classificacao": "Corpo Gelado"},
-    "Oberon": {"tipo": "Satelite", "classificacao": "Corpo Gelado"},
-    "Umbriel": {"tipo": "Satelite", "classificacao": "Corpo Gelado"},
-    "Ariel": {"tipo": "Satelite", "classificacao": "Corpo Gelado"},
-    
-    # Satélites Naturais (Lua de Netuno)
-    "Tritao": {"tipo": "Satelite", "classificacao": "Orbita Retrograda"}
-}
-
-# 3. INJEÇÃO DOS NÓS NO NETWORKX
-for nome, propiedades in astros.items():
-    G.add_node(nome, **propiedades)
-
-print(f"Grafo inicializado com {G.number_of_nodes()} nos do Sistema Solar.")
-
-# 4. MAPEAMENTO DE RELACIONAMENTOS
-# (Astro_Orbital, Centro_Gravitacional, Distancia_km)
-conexoes = [
-    # Planetas Principais e Planetas Anões que orbitam diretamente o Sol
-    ("Mercurio", "Sol", 57900000), ("Venus", "Sol", 108200000), 
-    ("Terra", "Sol", 149600000), ("Marte", "Sol", 227900000),
-    ("Jupiter", "Sol", 778500000), ("Saturno", "Sol", 1434000000), 
-    ("Urano", "Sol", 2871000000), ("Netuno", "Sol", 4495000000),
-    ("Plutao", "Sol", 5906000000), ("Ceres", "Sol", 413700000),
-    ("Eris", "Sol", 10120000000), ("Haumea", "Sol", 6450000000), 
-    ("Makemake", "Sol", 6850000000),
-    
-    # Satélites orbitando seus respectivos planetas hospedeiros
-    ("Lua", "Terra", 384400), ("Fobos", "Marte", 9377), ("Deimos", "Marte", 23460),
-    ("Io", "Jupiter", 421700), ("Europa", "Jupiter", 670900), 
-    ("Ganimedes", "Jupiter", 1070400), ("Calisto", "Jupiter", 1882700),
-    ("Amalteia", "Jupiter", 181400), ("Himalia", "Jupiter", 11461000),
-    ("Tebe", "Jupiter", 221900), ("Elara", "Jupiter", 11741000),
-    ("Pasife", "Jupiter", 23624000), ("Carme", "Jupiter", 23404000),
-    ("Tita", "Saturno", 1221800), ("Encelado", "Saturno", 238000), 
-    ("Mimas", "Saturno", 185400), ("Reia", "Saturno", 527100),
-    ("Japeto", "Saturno", 3560800), ("Dione", "Saturno", 377400),
-    ("Tetis", "Saturno", 294600), ("Hiperion", "Saturno", 1481100),
-    ("Titania", "Urano", 435900), ("Oberon", "Urano", 583500),
-    ("Umbriel", "Urano", 266000), ("Ariel", "Urano", 191000),
-    ("Tritao", "Netuno", 354800)
-]
-
-for origem, destino, dist in conexoes:
-    G.add_edge(origem, destino, relacao="ORBITA", distancia_km=dist)
-
-print(f"Vinculos orbitais estabelecidos com {G.number_of_edges()} arestas.")
-
-# 3. OPERAÇÕES DE MANIPULAÇÃO SIMPLIFICADAS
-
-def consultar_astro_e_orbitas():
-    nome = input("Astro para busca: ").strip()
-    if G.has_node(nome):
-        dados = G.nodes[nome]
-        print(f"\nNome: {nome}")
-        print(f"Tipo: {dados.get('tipo')}")
-        print(f"Classificacao: {dados.get('classificacao')}")
-        
-        # Exibe o que este astro orbita
-        for sucessor in G.successors(nome):
-            aresta = G.get_edge_data(nome, sucessor)
-            print(f"Orbita: {sucessor} (Distancia: {aresta['distancia_km']} km)")
-            
-        # Exibe quem orbita este astro
-        for predecessor in G.predecessors(nome):
-            print(f"Orbitado por: {predecessor}")
-    else:
-        print("Astro nao encontrado.")
-
-def adicionar_novo_astro():
-    nome = input("Nome do astro: ").strip()
-    tipo = input("Tipo: ").strip()
-    classificacao = input("Classificacao: ").strip()
-    
-    G.add_node(nome, tipo=tipo, classificacao=classificacao)
-    print("Astro adicionado.")
-
-def adicionar_nova_orbita():
-    astro_orbital = input("Astro orbital: ").strip()
-    centro_gravitacional = input("Centro gravitacional: ").strip()
-    
-    if G.has_node(astro_orbital) and G.has_node(centro_gravitacional):
-        try:
-            dist = int(input("Distancia (km): "))
-        except ValueError:
-            dist = 0
-        G.add_edge(astro_orbital, centro_gravitacional, relacao="ORBITA", distancia_km=dist)
-        print("Orbita adicionada.")
-    else:
-        print("Erro: Um ou ambos os astros nao existem.")
-
-def remover_astro_do_sistema():
-    nome = input("Nome do astro para remover: ").strip()
-    if G.has_node(nome):
-        G.remove_node(nome)
-        print("Astro e vinculos removidos.")
-    else:
-        print("Astro nao encontrado.")
-
-# 4. MOTOR DE RENDERIZAÇÃO INTERATIVA (PYVIS)
-
-def gerar_visualizacao_interativa(nome_arquivo="sistema_solar.html"):
-    net = Network(notebook=False, directed=True, height="850px", width="100%", bgcolor="#141414", font_color="white")
-    net.force_atlas_2based(gravity=-120, central_gravity=0.015, spring_length=150, spring_strength=0.1)
-    
-    for no, dados in G.nodes(data=True):
-        tipo = dados.get('tipo', '')
-        classif = dados.get('classificacao', '')
-        
-        if tipo == "Estrela":
-            cor, tamanho = "#ff0055", 75
-        elif tipo == "Planeta":
-            cor, tamanho = "#00bbf9", 45
-        elif tipo == "Planeta Anao":
-            cor, tamanho = "#00f5d4", 32
-        else:
-            cor, tamanho = "#fee440", 20
-
-        net.add_node(
-            no, label=no, title=f"Tipo: {tipo}\nClassificacao: {classif}",
-            color=cor, size=tamanho,
-            font={'size': 20, 'face': 'Arial', 'color': '#ffffff', 'strokeWidth': 2, 'strokeColor': '#000000'}
-        )
-
-    for origem, destino in G.edges():
-        tipo_origem = G.nodes[origem].get('tipo', '')
-        comprimento = 70 if tipo_origem == "Satelite" else 280
-        net.add_edge(origem, destino, arrows='to', length=comprimento, color={'color': '#555555'}, width=2.0)
-
-    net.save_graph(nome_arquivo)
-    print(f"\nArquivo HTML '{nome_arquivo}' gerado com sucesso!")
+from src.graph_manager import (
+    adicionar_astro,
+    adicionar_orbita,
+    consultar_astro,
+    criar_grafo_sistema_solar,
+    remover_astro,
+    remover_orbita,
+)
+from src.visualizer import gerar_visualizacao_interativa
 
 
-# 5. LOOP DO MENU PRINCIPAL
+def main():
+    grafo = criar_grafo_sistema_solar()
+    print(f"Grafo inicializado com {grafo.number_of_nodes()} nos e {grafo.number_of_edges()} arestas.")
 
-if __name__ == "__main__":
     while True:
-        print("\n--- MENU ---")
-        print("1. Consultar Astro")
-        print("2. Adicionar Astro")
-        print("3. Adicionar Orbita")
+        print("\n--- MENU ASTRO-GRAPH ---")
+        print("1. Consultar Astro e Orbitas")
+        print("2. Adicionar Novo Astro")
+        print("3. Adicionar Nova Orbita")
         print("4. Remover Astro")
-        print("5. Gerar HTML")
-        print("6. Sair")
-        
+        print("5. Remover Orbita")
+        print("6. Gerar Visualizacao Interativa (HTML)")
+        print("7. Sair")
+
         opcao = input("Opcao: ").strip()
-        
+
         if opcao == "1":
-            consultar_astro_e_orbitas()
+            consultar_astro(grafo, input("Astro para busca: "))
         elif opcao == "2":
-            adicionar_novo_astro()
+            nome = input("Nome do astro: ")
+            tipo = input("Tipo (Estrela, Planeta, Planeta Anao, Satelite): ")
+            classificacao = input("Classificacao: ")
+            adicionar_astro(grafo, nome, tipo, classificacao)
         elif opcao == "3":
-            adicionar_nova_orbita()
+            origem = input("Astro orbital: ")
+            destino = input("Centro gravitacional: ")
+            try:
+                dist = int(input("Distancia media (km): "))
+            except ValueError:
+                dist = 0
+            adicionar_orbita(grafo, origem, destino, dist)
         elif opcao == "4":
-            remover_astro_do_sistema()
+            remover_astro(grafo, input("Nome do astro para remover: "))
         elif opcao == "5":
-            gerar_visualizacao_interativa()
+            origem = input("Astro orbital: ")
+            destino = input("Centro gravitacional: ")
+            remover_orbita(grafo, origem, destino)
         elif opcao == "6":
+            gerar_visualizacao_interativa(grafo)
+        elif opcao == "7":
             print("Saindo...")
             break
         else:
             print("Opcao invalida.")
+
+
+if __name__ == "__main__":
+    main()
+    
